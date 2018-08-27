@@ -1,18 +1,11 @@
-FROM node:8-slim
+FROM resin/rpi-node:8.11.2-slim-20180617
 
 ####
 # Install LizardFS client
 ####
 
-# Install LizardFS Key
-RUN wget -O - http://packages.lizardfs.com/lizardfs.key | apt-key add -
-
-# Add apt repositories
-RUN echo "deb http://packages.lizardfs.com/debian/jessie jessie main" > /etc/apt/sources.list.d/lizardfs.list && \
-    echo "deb-src http://packages.lizardfs.com/debian/jessie  jessie main" >> /etc/apt/sources.list.d/lizardfs.list
-
-# Install LizardFS packages
-RUN apt-get update && \
+RUN echo "deb http://archive.raspbian.org/raspbian buster-staging main" > /etc/apt/sources.list.d/lizardfs.list
+ RUN apt-get update && \
     apt-get install -y lizardfs-client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
