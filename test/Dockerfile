@@ -16,7 +16,7 @@ WORKDIR /project
 RUN wget https://raw.githubusercontent.com/moby/moby/master/contrib/download-frozen-image-v2.sh -O /download-image.sh
 RUN chmod 744 /download-image.sh
 RUN mkdir -p /images/lizardfs
-RUN /download-image.sh /images/lizardfs kadimasolutions/lizardfs:latest
+RUN /download-image.sh /images/lizardfs johnymnemonic/rpi-lizardfs:latest
 
 # Copy in the docker compose file that we will use to create test LizardFS
 # clusters

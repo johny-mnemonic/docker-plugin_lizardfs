@@ -1,15 +1,15 @@
 version: '3'
 services:
   mfsmaster:
-    image: kadimasolutions/lizardfs
+    image: johnymnemonic/rpi-lizardfs
     command: master
     restart: on-failure
     volumes:
-      - /var/lib/mfs
+      - /var/lib/lizardfs
     ports:
       - ${MASTER_PORT}:9421
   chunkserver:
-    image: kadimasolutions/lizardfs
+    image: johnymnemonic/rpi-lizardfs
     command: chunkserver
     restart: on-failure
     environment:
@@ -19,7 +19,7 @@ services:
     volumes:
       - /mnt/mfshdd
   client:
-    image: kadimasolutions/lizardfs
+    image: johnymnemonic/rpi-lizardfs
     command: client /mnt/mfs
     restart: on-failure
     # Required permissions and devices for container to mount filesystem

@@ -7,7 +7,7 @@ log_prefix="[Plugin Environment]"
 echo "$log_prefix Starting Docker"
 dockerd-entrypoint.sh 2> /var/log/docker.log &
 echo $! > /run/dockerd-entrypoint.pid
-
+echo "$log_prefix Test Environment created. Running docker with PID: `cat /run/dockerd-entrypoint.pid`"
 # Wait for Docker to startup
 while ! docker ps > /var/log/docker.log; do
   sleep 1

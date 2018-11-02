@@ -6,6 +6,7 @@ log_prefix="[Root]"
 
 echo "$log_prefix Creating Test Environment"
 /test-environment.sh $image_tag
+echo "$log_prefix Test Environment created. Running docker with PID: `cat /run/dockerd-entrypoint.pid`"
 
 echo "$log_prefix Running Tests"
 /test-run.sh

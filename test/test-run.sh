@@ -1,5 +1,7 @@
 #!/bin/sh
 
+lizardfs_image=johnymnemonic/rpi-lizardfs #kadimasolutions/lizardfs
+
 ####
 # Plugin Test Cases
 ####
@@ -59,11 +61,11 @@ if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
 echo "$log_prefix Create test data on lizardfs-volume-1" && \
 docker run -it --rm -v lizardfs-volume-1:/data --entrypoint=bash \
-kadimasolutions/lizardfs -c 'echo "Hello World" > /data/test-data.txt' && \
+$lizardfs_image -c 'echo "Hello World" > /data/test-data.txt' && \
 \
 echo "$log_prefix Make sure data exists in volume" && \
 docker run -it --rm -v lizardfs-volume-1:/data --entrypoint=cat \
-kadimasolutions/lizardfs /data/test-data.txt | grep "Hello World" && \
+$lizardfs_image /data/test-data.txt | grep "Hello World" && \
 \
 echo "$log_prefix Make sure data exists on LizardFS filesystem" && \
 docker-compose exec client cat \
@@ -76,10 +78,10 @@ if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
 echo "$log_prefix Mount lizardfs-volume-1 into container1 and container2" && \
 docker run -d --name container1 -it --rm -v lizardfs-volume-1:/data --entrypoint=bash \
-kadimasolutions/lizardfs && \
+$lizardfs_image && \
 \
 docker run -d --name container2 -it --rm -v lizardfs-volume-1:/data --entrypoint=bash \
-kadimasolutions/lizardfs && \
+$lizardfs_image && \
 \
 echo "$log_prefix Make sure data exists in container1" && \
 docker exec -it container1 cat /data/test-data.txt | grep "Hello World" && \
@@ -98,7 +100,7 @@ docker stop container2 && \
 \
 echo "$log_prefix Make sure lizardfs-volume-1 can still be mounted into a new container" && \
 docker run -it --rm -v lizardfs-volume-1:/data --entrypoint=cat \
-kadimasolutions/lizardfs /data/test-data.txt | grep "Hello World"
+$lizardfs_image /data/test-data.txt | grep "Hello World"
 
 if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
@@ -168,30 +170,30 @@ docker volume create --driver lizardfs liz-2 && \
 \
 echo "$log_prefix Add test-files liz-1, liz-2" && \
 docker run -it --rm -v liz-1:/data --entrypoint=touch \
-kadimasolutions/lizardfs /data/liz-1.txt && \
+$lizardfs_image /data/liz-1.txt && \
 docker run -it --rm -v liz-2:/data --entrypoint=touch \
-kadimasolutions/lizardfs /data/liz-2.txt && \
+$lizardfs_image /data/liz-2.txt && \
 \
 echo "$log_prefix Mount Root Volume and make sure liz-1, liz-2, and their files are in it" && \
 docker run -it --rm -v lizardfs:/lizardfs --entrypoint=ls \
-kadimasolutions/lizardfs /lizardfs/liz-1 | grep "liz-1.txt" && \
+$lizardfs_image /lizardfs/liz-1 | grep "liz-1.txt" && \
 docker run -it --rm -v lizardfs:/lizardfs --entrypoint=ls \
-kadimasolutions/lizardfs /lizardfs/liz-2 | grep "liz-2.txt" && \
+$lizardfs_image /lizardfs/liz-2 | grep "liz-2.txt" && \
 \
 echo "$log_prefix Create a new directory, liz-3, in the Root Volume" && \
 docker run -it --rm -v lizardfs:/lizardfs --entrypoint=mkdir \
-kadimasolutions/lizardfs /lizardfs/liz-3 && \
+$lizardfs_image /lizardfs/liz-3 && \
 \
 echo "$log_prefix Make sure the new directory registers in the volume list" && \
 docker volume ls | grep "lizardfs.*liz-3" && \
 \
 echo "$log_prefix Create a volume with the same name as the Root Volume" && \
 docker run -it --rm -v lizardfs:/lizardfs --entrypoint=mkdir \
-kadimasolutions/lizardfs /lizardfs/lizardfs && \
+$lizardfs_image /lizardfs/lizardfs && \
 \
 echo "$log_prefix Make sure that the Root Volume takes precedence when mounting" && \
 docker run -it --rm -v lizardfs:/lizardfs --entrypoint=ls \
-kadimasolutions/lizardfs /lizardfs/liz-1 | grep "liz-1.txt"
+$lizardfs_image /lizardfs/liz-1 | grep "liz-1.txt"
 
 if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
@@ -245,7 +247,7 @@ docker-compose down -v
 if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
 # Test setting the CONNECT_TIMEOUT
-
+set -x
 echo "$log_prefix Setting the plugin HOST='not-a-cluster' CONNECT_TIMEOUT='3000'" && \
 docker plugin disable lizardfs && \
 docker plugin set lizardfs HOST=not-a-cluster && \
@@ -256,6 +258,7 @@ if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
 echo "$log_prefix Check timeout when connecting to non-existent cluster"
 time -f %e -o /tmp/elapsed docker volume ls
+echo "$log_prefix Actual timeout: `cat /tmp/elapsed`"
 elapsed=$(cat /tmp/elapsed | awk -F . '{print $1}')
 
 if [ $elapsed -gt 4 -o $elapsed -lt 2 ]; then echo "TEST FAILED"; exit 1; fi
@@ -270,6 +273,7 @@ if [ ! $? -eq 0 ]; then echo "TEST FAILED"; exit $?; fi
 
 echo "$log_prefix Check timeout when connecting to non-existent cluster"
 time -f %e -o /tmp/elapsed docker volume ls
+echo "$log_prefix Actual timeout: `cat /tmp/elapsed`"
 elapsed=$(cat /tmp/elapsed | awk -F . '{print $1}')
 
 if [ $elapsed -gt 11 -o $elapsed -lt 9 ]; then echo "TEST FAILED"; exit 1; fi
